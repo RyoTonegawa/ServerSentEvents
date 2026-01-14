@@ -1,23 +1,26 @@
-# Server-Sent Events Stack (Aurora + NestJS + Next.js)
+# Server-Sent Events Stack
 
-Reference implementation matching the new requirements:
-- Aurora/PostgreSQL (via local Postgres) with Row-Level Security only.
-- Transactional outbox pattern writing to Redis Streams.
-- NestJS backend exposing REST (`/events`) + SSE (`/sse`).
-- Next.js frontend: initial 50 rows via REST, then SSE for new arrivals.
+実装内容:
+- PostgreSQL（ローカルPostgres利用）+ Row-Level Security。
+- トランザクショナルアウトボックスパターンでRedis Streamsへ書き込み。
+- NestJSバックエンドがREST（`/events`）とSSE（`/sse`）を提供。
+- Next.jsフロントエンドはRESTで初回50件を取得し、その後SSEで新着を購読。
 
-## Project layout
-- `backend/` – NestJS service + migrations + Jest tests.
-- `frontend/` – Next.js App Router dashboard.
-- `infrastructure/` – Docker Compose for Postgres, Redis, backend, frontend.
-- `requriements.md` – architecture brief in Japanese.
+## プロジェクト構成
+- `backend/` – NestJSサービス + DBマイグレーション 
+- `frontend/` – Next.js App Routerダッシュボード。
+- `infrastructure/` – Postgres、Redis、backend、frontendのDocker Compose。
 
-## Quick start
+## クイックスタート
 ```bash
+cp backend/.env.example backend/.env
+
 cd backend
 npm install
 npm run migration:run
-npm run seed  # optional sample data
+# seedでサンプルデータを流すようにしている。
+# backend/scripts/seed.ts
+npm run seed  
 
 cd ../frontend
 npm install
@@ -26,4 +29,9 @@ cd ../infrastructure
 docker compose up --build
 ```
 
-Use `curl -H "x-tenant-id: <uuid>" http://localhost:3001/events?limit=50` for manual verification.
+## 環境変数
+ローカル起動には `backend/.env` が必要です。`backend/.env.example` をコピーして設定してください。
+
+- `TENANT_IDS` – 受け入れるテナントIDのCSV（例: `11111111-1111-1111-1111-111111111111`）
+
+手動検証の場合のcurl: `curl -H "x-tenant-id: <uuid>" http://localhost:3001/events?limit=50`

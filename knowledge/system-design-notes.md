@@ -6,7 +6,7 @@
 - **Without it**: アプリコードが `INSERT`→`publish` を順次実行するだけだと、途中障害で通知漏れや重複送信が多発し、コンポーネント間で一致を保つ仕組みを毎回実装する必要がある。
 
 ## Motivation for Decoupling Write & Notify
-- **Responsibility separation**: Aurora/PostgreSQL は整合性とRLSに集中し、配信レイヤー（Redis/Kafka）は低レイテンシ配信とスケールを担う。
+- **Responsibility separation**: PostgreSQL は整合性とRLSに集中し、配信レイヤー（Redis/Kafka）は低レイテンシ配信とスケールを担う。
 - **プラガブルなブローカー**: ブローカーを Redis Streams から Kafka に差し替えるなど、技術選択の自由度が増す。
 - **マルチシンク**: 一度アウトボックスに溜めれば、SSE、メール、Push など異なる通知チャンネルに同じイベントを配信できる。
 - **課題**: ポーリングワーカーの開発/監視が必要、ブローカー運用/リトライ設計も含めた新たな複雑さが生まれる。
@@ -17,7 +17,7 @@
 - **Relation here**: Redis Streams が Pub/Sub 的な役割を担い、SSE ブローカーはどのクライアントにも同じイベントをブロードキャストできる。WebSocket 設計で紹介されるスケールアウトパターンと同じ思考方法。
 
 ## RDB vs Message Broker Characteristics
-- **RDB (Aurora/PostgreSQL)**: トランザクション整合性と永続性が目的。`SELECT ... FOR UPDATE` やトランザクション維持で行ロックが発生し、ワーカーが増えるほどロック競合と IO がネックになる。
+- **RDB (PostgreSQL)**: トランザクション整合性と永続性が目的。`SELECT ... FOR UPDATE` やトランザクション維持で行ロックが発生し、ワーカーが増えるほどロック競合と IO がネックになる。
 - **Message Broker (Redis Streams/Kafka)**: メモリ/ログ構造で低レイテンシ配信に特化。ブロッキング読み取りでもロック競合が少なく、複数コンシューマを前提に設計されている。
 - **設計の結論**: DB でデータの正確性を担保しつつ、通知とファンアウトはメッセージブローカーへ逃がすのが合理的。RDB とブローカーは目的が異なるため、それぞれの強みを活かす。
 

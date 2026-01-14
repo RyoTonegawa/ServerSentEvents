@@ -26,7 +26,7 @@
 # Transactional Outbox + Pub/Sub Pattern
 
 - **書き込み/配信の分離**  
-  DB (Aurora/PostgreSQL) は events/outbox を RLS 付きで保持し、通知処理を一切持たない。`OutboxWorkerService` が Kafka/Redis などのブローカーへ publish することで、チャットなどの高頻度配信に見られる “Transactional Outbox + Broker” パターンを踏襲している。
+  DB (PostgreSQL) は events/outbox を RLS 付きで保持し、通知処理を一切持たない。`OutboxWorkerService` が Kafka/Redis などのブローカーへ publish することで、チャットなどの高頻度配信に見られる “Transactional Outbox + Broker” パターンを踏襲している。
 - **SSE ブロードキャスト**  
   ブラウザは `EventSource` で `/sse` に接続し、バックエンドは Redis Streams から1回読み取ってすべての SSE クライアントにブロードキャストする。「ロードバランサ＋Pub/Sub」構成でスケールさせる設計と同じアプローチ。
 - **拡張性**  
@@ -37,7 +37,7 @@
 # 結論：今回のダッシュボード配信は Redis Streams で十分。Kafka は（今は）過剰スペック
 
 ## ユースケース（前提）
-- 初回ロード時に Aurora PostgreSQL から **最新50件**を取得して、フロントのテーブル（shadcn datatable）に表示する
+- 初回ロード時に  PostgreSQL から **最新50件**を取得して、フロントのテーブル（shadcn datatable）に表示する
 - その後に発生したイベント（DBに新規書き込みされた行）を、SSE（またはWebSocket）で **順次追加配信**してテーブルに反映したい
 - ユーザがページをリロードすれば、再びDBから **最新50件だけ再取得**すればよい（= 長期の取りこぼしリカバリをDBフェッチで許容）
 
@@ -45,7 +45,7 @@
 
 ## 推奨アーキテクチャ（最小で成立する形）
 1. **GET /events?limit=50**  
-   - Aurora PostgreSQL から最新50件を取得して表示（初回描画）
+   -  PostgreSQL から最新50件を取得して表示（初回描画）
 2. **/events/stream（SSE）** 接続  
    - 以降の増分イベントを受け取って、テーブルに追加
 3. バックエンド側の配信経路（例）
@@ -63,7 +63,7 @@
 - Redis Streams は「短期リテンションの配信レーン」と相性が良い
 
 ### 2) “配信の正” はDB側に置ける
-- イベントの正本は Aurora 側にある
+- イベントの正本は  側にある
 - Redis Streams は **リアルタイム配信用の一時的なストリーム**として扱える  
   → Redis 側で多少の取りこぼしが起きても、ページリロード（最新50件再取得）でユーザー体験を回復できる
 
