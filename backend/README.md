@@ -21,5 +21,5 @@
 - `npm install`
 - `npm run prisma:generate` (re-run when `prisma/schema.prisma` changes)
 - `npm run migration:run`
-- `npm run start:dev`
+- `npm run start`
 - `npm test`

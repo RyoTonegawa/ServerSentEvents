@@ -9,7 +9,7 @@
 ## プロジェクト構成
 - `backend/` – NestJSサービス + DBマイグレーション 
 - `frontend/` – Next.js App Routerダッシュボード。
-- `infrastructure/` – Postgres、Redis、backend、frontendのDocker Compose。
+- `infrastructure/` – Postgres、RedisのDocker Compose。
 
 ## クイックスタート
 ```bash
@@ -25,7 +25,7 @@ npm run migration:run
 # seedでサンプルデータを流すようにしている。
 # backend/scripts/seed.ts
 npm run seed  
-npm run start:dev
+npm run start
 
 cd frontend
 npm install
